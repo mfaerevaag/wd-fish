@@ -49,11 +49,12 @@ Commands:
     -h | [--]help     Show this extremely helpful text"
 end
 
-function _wd_add -a point
+function _wd_add
+    set point $argv[1]
+
     # check args
     if test ! "$point"
-        echo "error: no point given" 1>&2
-        return 1
+        set point (basename $PWD)
     end
 
     # check for illegal chars
