@@ -15,7 +15,7 @@ function wd -a cmd arg -d "warp directory"
         case add
             _wd_add $arg
         case rm
-            _wd_rm $arg
+            _wd_rm $argv[2..-1]
         case list
             _wd_list
         case ls
@@ -143,32 +143,50 @@ function _wd_add -a point
     echo "$point:$PWD" >> $wd_rc
 end
 
-# TODO: remove multiple
-function _wd_rm -a point
+function _wd_rm
+    set ret 0
+
+    # check args
+    if test (count $argv) -lt 1
+        echo "error: no point given" 1>&2
+        return 1
+    end
+
+    # tmp file to store new rc
     set tmp (mktemp /tmp/warprc.XXXXXX)
-    set found 1
 
-    # write all other to tmp
+    # store those found
+    set found
+
+    # loop through points
     while read -la line
-        set split (string split ':' $line)
+        set point (string split ':' $line)[1]
 
-        if test "$split[1]" != "$point"
-            echo $line >> $tmp
+        # write those not found to tmp
+        if contains $point $argv
+            echo "fount $point!"
+            set -a found $point
         else
-            set found 0
+            echo $line >> $tmp
         end
     end < $wd_rc
 
     # if found, update rc
-    if test $found -eq 0
+    if test (count $found) -gt 0
         cat $tmp > $wd_rc
-    else
-        echo "error: point '$point' not found" 1>&2
+    end
+
+    # warn about those not found
+    for point in $argv
+        if not contains $point $found
+            echo "error: point '$point' not found" 1>&2
+            set ret 1
+        end
     end
 
     # remove tmp and return
     rm -f $tmp
-    return $found
+    return $ret
 end
 
 function _wd_warp -a point subdir
