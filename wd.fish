@@ -123,6 +123,12 @@ Commands:
 end
 
 function _wd_add -a point
+    # check args
+    if test ! "$point"
+        echo "error: no point given" 1>&2
+        return 1
+    end
+
     # check for illegal chars
     if string match '*:*' $point > /dev/null
         echo "error: name contains illeagal characters" 1>&2
@@ -190,6 +196,12 @@ function _wd_rm
 end
 
 function _wd_warp -a point subdir
+    # check args
+    if test ! "$point"
+        echo "error: no point given" 1>&2
+        return 1
+    end
+
     # find point and warp
     while read -la line
         set split (string split : $line)
@@ -229,6 +241,12 @@ function _wd_list
 end
 
 function _wd_ls -a point
+    # check args
+    if test ! "$point"
+        echo "error: no point given" 1>&2
+        return 1
+    end
+
     while read -la line
         set split (string split : $line)
 
@@ -245,6 +263,12 @@ function _wd_ls -a point
 end
 
 function _wd_path -a point
+    # check args
+    if test ! "$point"
+        echo "error: no point given" 1>&2
+        return 1
+    end
+
     while read -la line
         set split (string split : $line)
 
