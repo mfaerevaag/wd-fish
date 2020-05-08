@@ -25,7 +25,7 @@ See [README](https://github.com/mfaerevaag/wd) from the original `wd` for zsh. N
 
 That being said, the completions are better (and more stable). You can warp directly to subdirectories using tab completions:
 
-    wd foobar <TAB>
+![completion-example](https://raw.githubusercontent.com/mfaerevaag/wd-fish/master/completion-example.png)
 
 
 ## License
