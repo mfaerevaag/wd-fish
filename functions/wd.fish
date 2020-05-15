@@ -98,7 +98,6 @@ function _wd_rm
 
         # write those not found to tmp
         if contains $point $argv
-            echo "fount $point!"
             set -a found $point
         else
             echo $line >> $tmp
