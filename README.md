@@ -12,7 +12,7 @@ To install, you can either copy the files over to your fish directory manually (
 
 ### [Fisher](https://github.com/jorgebucaran/fisher)
 
-    fisher add mfaerevaag/wd-fish
+    fisher install mfaerevaag/wd-fish
 
 ### [Oh My Fish](https://github.com/oh-my-fish/oh-my-fish)
 
