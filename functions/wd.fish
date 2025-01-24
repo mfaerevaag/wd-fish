@@ -123,6 +123,11 @@ function _wd_rm
 end
 
 function _wd_warp -a point subdir
+    if test "$point" = ".."
+        popd
+        return 0
+    end
+
     # check args
     if test ! "$point"
         echo "error: no point given" 1>&2
@@ -148,7 +153,7 @@ function _wd_warp -a point subdir
             end
 
             # warp
-            cd "$path"
+            pushd "$path" >/dev/null
             return 0
         end
     end < $wd_rc
