@@ -125,7 +125,7 @@ end
 function _wd_warp -a point subdir
     if test "$point" = ".."
         popd
-        return 0
+        return
     end
 
     # check args
@@ -140,11 +140,11 @@ function _wd_warp -a point subdir
 
         # find point
         if test "$split[1]" = "$point"
-            set path (string replace '~' $HOME $split[2..])
+            set path (string replace -r '^~' $HOME $split[2..])
 
             # check for subdir
             if test $subdir
-                if ! path resolve "$path/$subdir"
+                if test ! -d "$path/$subdir"
                     echo "error: subdir '$subdir' not found" 1>&2
                     return 1
                 end
@@ -184,7 +184,7 @@ function _wd_ls -a point
 
         # found
         if test "$split[1]" = "$point"
-            ls "$split[2..-1]"
+            ls (string replace -r '^~' $HOME "$split[2..-1]")
             return 0
         end
     end < $wd_rc
@@ -206,7 +206,7 @@ function _wd_path -a point
 
         # found
         if test "$split[1]" = "$point"
-            echo (string replace '~' $HOME $split[2..-1])
+            echo (string replace -r '^~' $HOME $split[2..-1])
             return 0
         end
     end < $wd_rc
