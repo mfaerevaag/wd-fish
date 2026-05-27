@@ -1,36 +1,42 @@
+set -g wd_version 1.0.0
 set -g wd_rc $HOME/.warprc
 
-function wd -a cmd arg -d "warp directory"
+function wd -a cmd -d "warp directory"
     # check for rc, or create it
     if test ! -f $wd_rc
         touch $wd_rc
     end
 
-    # yolo
     switch "$cmd"
         case version -v --version
             _wd_version
         case help -h --help ''
             _wd_help
         case add
-            _wd_add $arg
+            _wd_add $argv[2..-1]
         case rm
             _wd_rm $argv[2..-1]
+        case clean
+            _wd_clean
+        case rename
+            _wd_rename $argv[2] $argv[3]
+        case show
+            _wd_show $argv[2]
         case list
             _wd_list
         case ls
-            _wd_ls $arg
+            _wd_ls $argv[2]
         case path
-            _wd_path $arg
+            _wd_path $argv[2]
         case \*
-            _wd_warp $cmd $arg
+            _wd_warp $cmd $argv[2]
     end
 end
 
 # sub functions
 
 function _wd_version
-    echo "pre versioning..."
+    echo "wd-fish $wd_version"
 end
 
 function _wd_help
@@ -38,9 +44,14 @@ function _wd_help
 
 Commands:
     <point>           Warps to the directory specified by the warp point
+    <point> <subdir>  Warps to a subdirectory of the warp point
 
     add <point>       Adds the current working directory to your warp points
+    add -f <point>    Adds or overwrites an existing warp point
     rm <point>        Removes the given warp point
+    rename <old> <new>  Renames a warp point
+    show <point>      Show the path and whether it exists
+    clean             Remove warp points with missing directories
     list              Print all stored warp points
     ls  <point>       Show files from given warp point (ls)
     path <point>      Show the path to given warp point (pwd)
@@ -50,24 +61,38 @@ Commands:
 end
 
 function _wd_add
-    set point $argv[1]
+    set -l force 0
+    set -l point
 
-    # check args
+    for a in $argv
+        switch "$a"
+            case -f --force
+                set force 1
+            case '*'
+                set point $a
+        end
+    end
+
     if test ! "$point"
         set point (basename $PWD)
     end
 
     # check for illegal chars
     if string match '*:*' $point >/dev/null
-        echo "error: name contains illeagal characters" 1>&2
+        echo "error: name contains illegal characters" 1>&2
         return 1
     end
 
     # check if exists
     while read -la line
-        set split (string split ':' $line)
+        set split (string split -m1 ':' $line)
 
         if test "$split[1]" = "$point"
+            if test $force -eq 1
+                _wd_rm $point
+                echo "$point:$PWD" >>$wd_rc
+                return 0
+            end
             echo "error: point '$point' already exists" 1>&2
             return 1
         end
@@ -94,7 +119,7 @@ function _wd_rm
 
     # loop through points
     while read -la line
-        set point (string split ':' $line)[1]
+        set point (string split -m1 ':' $line)[1]
 
         # write those not found to tmp
         if contains $point $argv
@@ -109,6 +134,8 @@ function _wd_rm
         cat $tmp >$wd_rc
     end
 
+    rm -f $tmp
+
     # warn about those not found
     for point in $argv
         if not contains $point $found
@@ -117,15 +144,107 @@ function _wd_rm
         end
     end
 
-    # remove tmp and return
-    rm -f $tmp
     return $ret
+end
+
+function _wd_clean
+    set tmp (mktemp /tmp/warprc.XXXXXX)
+    set removed
+
+    while read -la line
+        set split (string split -m1 ':' $line)
+        set path (string replace -r '^~' $HOME $split[2])
+
+        if test -d "$path"
+            echo $line >>$tmp
+        else
+            set -a removed $split[1]
+        end
+    end <$wd_rc
+
+    if test (count $removed) -gt 0
+        cat $tmp >$wd_rc
+        for point in $removed
+            echo "removed: $point"
+        end
+    else
+        echo "no stale warp points found"
+    end
+
+    rm -f $tmp
+end
+
+function _wd_rename -a old new
+    if test ! "$old" -o ! "$new"
+        echo "error: usage: wd rename <old> <new>" 1>&2
+        return 1
+    end
+
+    if string match '*:*' $new >/dev/null
+        echo "error: name contains illegal characters" 1>&2
+        return 1
+    end
+
+    set tmp (mktemp /tmp/warprc.XXXXXX)
+    set found 0
+
+    while read -la line
+        set split (string split -m1 ':' $line)
+
+        if test "$split[1]" = "$new"
+            rm -f $tmp
+            echo "error: point '$new' already exists" 1>&2
+            return 1
+        end
+
+        if test "$split[1]" = "$old"
+            echo "$new:$split[2]" >>$tmp
+            set found 1
+        else
+            echo $line >>$tmp
+        end
+    end <$wd_rc
+
+    if test $found -eq 0
+        rm -f $tmp
+        echo "error: point '$old' not found" 1>&2
+        return 1
+    end
+
+    cat $tmp >$wd_rc
+    rm -f $tmp
+end
+
+function _wd_show -a point
+    if test ! "$point"
+        echo "error: no point given" 1>&2
+        return 1
+    end
+
+    while read -la line
+        set split (string split -m1 : $line)
+
+        if test "$split[1]" = "$point"
+            set path (string replace -r '^~' $HOME $split[2])
+
+            if test -d "$path"
+                echo "$path (valid)"
+            else
+                echo "$path (missing)" 1>&2
+                return 1
+            end
+            return 0
+        end
+    end <$wd_rc
+
+    echo "error: point '$point' not found" 1>&2
+    return 1
 end
 
 function _wd_warp -a point subdir
     if test "$point" = ".."
         popd
-        return 0
+        return
     end
 
     # check args
@@ -136,15 +255,15 @@ function _wd_warp -a point subdir
 
     # find point and warp
     while read -la line
-        set split (string split : $line)
+        set split (string split -m1 : $line)
 
         # find point
         if test "$split[1]" = "$point"
-            set path (string replace '~' $HOME $split[2..])
+            set path (string replace -r '^~' $HOME $split[2])
 
             # check for subdir
             if test $subdir
-                if ! path resolve "$path/$subdir"
+                if test ! -d "$path/$subdir"
                     echo "error: subdir '$subdir' not found" 1>&2
                     return 1
                 end
@@ -165,8 +284,8 @@ end
 
 function _wd_list
     while read -la line
-        set split (string split : $line)
-        set path (string replace "$HOME" "~" $split[2..-1])
+        set split (string split -m1 : $line)
+        set path (string replace "$HOME" "~" $split[2])
 
         printf "$split[1]\t -> \t $path\n"
     end <$wd_rc
@@ -180,11 +299,11 @@ function _wd_ls -a point
     end
 
     while read -la line
-        set split (string split : $line)
+        set split (string split -m1 : $line)
 
         # found
         if test "$split[1]" = "$point"
-            ls "$split[2..-1]"
+            ls (string replace -r '^~' $HOME "$split[2]")
             return 0
         end
     end <$wd_rc
@@ -202,11 +321,11 @@ function _wd_path -a point
     end
 
     while read -la line
-        set split (string split : $line)
+        set split (string split -m1 : $line)
 
         # found
         if test "$split[1]" = "$point"
-            echo (string replace '~' $HOME $split[2..-1])
+            echo (string replace -r '^~' $HOME $split[2])
             return 0
         end
     end <$wd_rc
