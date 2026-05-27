@@ -2,39 +2,93 @@
 
 `wd` (*warp directory*) lets you jump to custom directories in your terminal, without using `cd`. Why? Because `cd` seems inefficient when the folder is frequently visited or has a long path.
 
-*NOTE*: This is a port written for [fish-shell](https://fishshell.com/). If you're using `zsh`, check out the [original wd](https://github.com/mfaerevaag/wd), or the [wd-c](https://github.com/mfaerevaag/wd-c) version, which should work with all shells using wapper functions.
-
+This is a [fish shell](https://fishshell.com/) port of the [original wd](https://github.com/mfaerevaag/wd) for zsh. It uses the same `~/.warprc` file format, so you can share warp points between shells.
 
 ## Install
 
-To install, you can either copy the files over to your fish directory manually (likely `~/.config/fish/`), or by using one of the package managers below.
-
-
 ### [Fisher](https://github.com/jorgebucaran/fisher)
 
-    fisher install mfaerevaag/wd-fish
+```fish
+fisher install mfaerevaag/wd-fish
+```
 
 ### [Oh My Fish](https://github.com/oh-my-fish/oh-my-fish)
 
-    omf install mfaerevaag/wd-fish
+```fish
+omf install mfaerevaag/wd-fish
+```
 
+### Manual
+
+Copy `functions/wd.fish` and `completions/wd.fish` to your fish config directory (usually `~/.config/fish/`).
 
 ## Usage
 
-See [README](https://github.com/mfaerevaag/wd) from the original `wd` for zsh. Not all features are implemented, through, such as `wd clean` and force flags.
+```fish
+# Save the current directory as a warp point
+wd add work
 
-That being said, the completions are better (and more stable). You can warp directly to subdirectories using tab completions:
+# Warp to it from anywhere
+wd work
+
+# Warp to a subdirectory
+wd work src/components
+
+# Go back to where you were
+wd ..
+
+# Overwrite an existing warp point with the current directory
+wd add -f work
+
+# Rename a warp point
+wd rename work office
+
+# List all warp points
+wd list
+
+# Show a warp point's path and whether it still exists
+wd show office
+
+# List files at a warp point
+wd ls office
+
+# Print the path without warping
+wd path office
+
+# Remove a warp point
+wd rm office
+
+# Remove all warp points whose directories no longer exist
+wd clean
+```
+
+All commands support tab completion, including subdirectory completion for warp points:
 
 ![completion-example](https://raw.githubusercontent.com/mfaerevaag/wd-fish/master/completion-example.png)
 
+## Commands
+
+| Command | Description |
+|---|---|
+| `wd <point>` | Warp to the directory |
+| `wd <point> <subdir>` | Warp to a subdirectory of the warp point |
+| `wd ..` | Return to the previous directory (uses `popd`) |
+| `wd add <point>` | Save the current directory (defaults to dirname if no name given) |
+| `wd add -f <point>` | Save the current directory, overwriting if the point exists |
+| `wd rm <point> ...` | Remove one or more warp points |
+| `wd rename <old> <new>` | Rename a warp point |
+| `wd show <point>` | Print the path and whether the directory exists |
+| `wd clean` | Remove warp points whose target directories no longer exist |
+| `wd list` | Print all warp points |
+| `wd ls <point>` | List files at the warp point's directory |
+| `wd path <point>` | Print the warp point's path |
+| `wd --version` | Print version |
+| `wd --help` | Print help |
+
+## Compatibility
+
+Warp points are stored in `~/.warprc` using the same `name:path` format as the zsh version. Paths starting with `~` are expanded correctly, so warp points created in zsh work without modification.
 
 ## License
 
-The project is licensed under the [MIT license](https://github.com/mfaerevaag/wd-fish/blob/master/LICENSE).
-
-
-## Finally
-
-Simplicity has been in focus while writing this port. The data types are simple and functions operations mostly include looping through the `.warprc` config file. New features are most welcome, but please keep this in mind.
-
-If you have issues, feedback or improvements, don't hesitate to report it or submit a pull-request. 
+[MIT](LICENSE)
