@@ -2,16 +2,16 @@
 complete -f -c wd
 
 # complete points
-complete -f -c wd -k -n "_wd_should_complete_point" -a "(_wd_complete_point)"
+complete -f -c wd -k -n _wd_should_complete_point -a "(_wd_complete_point)"
 
 # complete sub commands
-complete -f -c wd -k -n "_wd_complete_empty" -a help -d "show help"
-complete -f -c wd -k -n "_wd_complete_empty" -a version -d "show version"
-complete -f -c wd -k -n "_wd_complete_empty" -a ls -d "ls warp point directory"
-complete -f -c wd -k -n "_wd_complete_empty" -a path -d "show path of warp point"
-complete -f -c wd -k -n "_wd_complete_empty" -a list -d "list warp points"
-complete -f -c wd -k -n "_wd_complete_empty" -a rm -d "remove warp point"
-complete -f -c wd -k -n "_wd_complete_empty" -a add -d "add warp point"
+complete -f -c wd -k -n _wd_complete_empty -a help -d "show help"
+complete -f -c wd -k -n _wd_complete_empty -a version -d "show version"
+complete -f -c wd -k -n _wd_complete_empty -a ls -d "ls warp point directory"
+complete -f -c wd -k -n _wd_complete_empty -a path -d "show path of warp point"
+complete -f -c wd -k -n _wd_complete_empty -a list -d "list warp points"
+complete -f -c wd -k -n _wd_complete_empty -a rm -d "remove warp point"
+complete -f -c wd -k -n _wd_complete_empty -a add -d "add warp point"
 
 # complete subdirs of given point
 complete -f -c wd -a "(_wd_complete_subdir)"
@@ -51,7 +51,7 @@ function _wd_complete_point
 
         # add with description, separated by tab
         set points "$points\n$split[1]\t -> $split[2..-1]"
-    end < $wd_rc
+    end <$wd_rc
 
     echo $points | string unescape
 end
@@ -68,5 +68,5 @@ function _wd_complete_subdir
             __fish_complete_directories "$path/$subpath" | string replace "$path/" ""
             return 0
         end
-    end < $wd_rc
+    end <$wd_rc
 end

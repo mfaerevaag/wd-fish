@@ -58,7 +58,7 @@ function _wd_add
     end
 
     # check for illegal chars
-    if string match '*:*' $point > /dev/null
+    if string match '*:*' $point >/dev/null
         echo "error: name contains illeagal characters" 1>&2
         return 1
     end
@@ -71,10 +71,10 @@ function _wd_add
             echo "error: point '$point' already exists" 1>&2
             return 1
         end
-    end < $wd_rc
+    end <$wd_rc
 
     # add warp point
-    echo "$point:$PWD" >> $wd_rc
+    echo "$point:$PWD" >>$wd_rc
 end
 
 function _wd_rm
@@ -100,13 +100,13 @@ function _wd_rm
         if contains $point $argv
             set -a found $point
         else
-            echo $line >> $tmp
+            echo $line >>$tmp
         end
-    end < $wd_rc
+    end <$wd_rc
 
     # if found, update rc
     if test (count $found) -gt 0
-        cat $tmp > $wd_rc
+        cat $tmp >$wd_rc
     end
 
     # warn about those not found
@@ -156,7 +156,7 @@ function _wd_warp -a point subdir
             pushd "$path" >/dev/null
             return 0
         end
-    end < $wd_rc
+    end <$wd_rc
 
     # not found
     echo "error: warp point '$point' not found" 1>&2
@@ -169,7 +169,7 @@ function _wd_list
         set path (string replace "$HOME" "~" $split[2..-1])
 
         printf "$split[1]\t -> \t $path\n"
-    end < $wd_rc
+    end <$wd_rc
 end
 
 function _wd_ls -a point
@@ -187,7 +187,7 @@ function _wd_ls -a point
             ls "$split[2..-1]"
             return 0
         end
-    end < $wd_rc
+    end <$wd_rc
 
     # not found
     echo "error: point '$point' not found" 1>&2
@@ -209,7 +209,7 @@ function _wd_path -a point
             echo (string replace '~' $HOME $split[2..-1])
             return 0
         end
-    end < $wd_rc
+    end <$wd_rc
 
     # not found
     echo "error: point '$point' not found" 1>&2

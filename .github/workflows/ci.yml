@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Install fish shell
+        uses: fish-shop/install-fish-shell@3d3495a8edde019283ece78087c4da133d03dd57 # v2.1.16
+
+      - name: Syntax check
+        uses: fish-shop/syntax-check@f74533521a177bc1047ea185e97dce5e89a643bd # v2.2.105
+
+      - name: Indent check
+        uses: fish-shop/indent-check@db90fa808dfeb434620e553dec75ba0967a557e8 # v2.2.107
