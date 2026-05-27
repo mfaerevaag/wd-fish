@@ -9,7 +9,10 @@ complete -f -c wd -k -n _wd_complete_empty -a help -d "show help"
 complete -f -c wd -k -n _wd_complete_empty -a version -d "show version"
 complete -f -c wd -k -n _wd_complete_empty -a ls -d "ls warp point directory"
 complete -f -c wd -k -n _wd_complete_empty -a path -d "show path of warp point"
+complete -f -c wd -k -n _wd_complete_empty -a show -d "show path and check existence"
 complete -f -c wd -k -n _wd_complete_empty -a list -d "list warp points"
+complete -f -c wd -k -n _wd_complete_empty -a clean -d "remove stale warp points"
+complete -f -c wd -k -n _wd_complete_empty -a rename -d "rename a warp point"
 complete -f -c wd -k -n _wd_complete_empty -a rm -d "remove warp point"
 complete -f -c wd -k -n _wd_complete_empty -a add -d "add warp point"
 
@@ -25,7 +28,7 @@ end
 
 function _wd_should_complete_point
     set cmd (commandline -opc)
-    set relevant rm ls path
+    set relevant rm ls path show rename
 
     # no args
     if test (count $cmd) -eq 1
@@ -47,10 +50,10 @@ function _wd_complete_point
     set points
 
     while read -la line
-        set split (string split ':' $line)
+        set split (string split -m1 ':' $line)
 
         # add with description, separated by tab
-        set points "$points\n$split[1]\t -> $split[2..-1]"
+        set points "$points\n$split[1]\t -> $split[2]"
     end <$wd_rc
 
     echo $points | string unescape
@@ -61,10 +64,10 @@ function _wd_complete_subdir
     set subpath (commandline -ct)
 
     while read -la line
-        set split (string split ':' $line)
+        set split (string split -m1 ':' $line)
 
         if [ "$point" = "$split[1]" ]
-            set path $split[2..-1]
+            set path (string replace -r '^~' $HOME $split[2])
             __fish_complete_directories "$path/$subpath" | string replace "$path/" ""
             return 0
         end
